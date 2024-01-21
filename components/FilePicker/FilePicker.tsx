@@ -3,11 +3,11 @@ import React, { useCallback, useState } from "react";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
 
-const FilePicker = ({ setMatrixT }) => {
+const FilePicker = ({ setMatrixT }: any) => {
   async function pickDocument() {
     let result = await DocumentPicker.getDocumentAsync({});
     const fileContent = await FileSystem.readAsStringAsync(
-      result.assets[0].uri
+      result?.assets?.[0]?.uri || ""
     );
     const jsonObject = JSON.parse(fileContent);
     let T = jsonObject.T;

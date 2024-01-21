@@ -16,8 +16,8 @@ export default function FilterInterpolation({
   setSliderValue,
   matrixT,
   setMatrixT,
-}) {
-  const onSliderValueChange = (value) => {
+}: any) {
+  const onSliderValueChange = (value: number) => {
     setSliderValue(value);
   };
 

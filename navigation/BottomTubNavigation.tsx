@@ -30,7 +30,7 @@ const BottomTubNavigation = () => {
     >
       <Tab.Screen
         name="Trands"
-        component={TrandsScreen}
+        component={TrandsScreen as any}
         options={{
           tabBarIcon: ({ focused }) => (
             <View style={styles.labelTab}>
@@ -66,7 +66,7 @@ const BottomTubNavigation = () => {
       />
       <Tab.Screen
         name="Profil"
-        component={ProfileScreen}
+        component={ProfileScreen as any}
         options={{
           tabBarIcon: ({ focused }) => (
             <View style={styles.labelTab}>

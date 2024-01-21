@@ -22,49 +22,64 @@ import Icon from "react-native-vector-icons/FontAwesome";
 import TensorVisualization from "../components/TensorVisualization/TensorVisualization";
 import FilterInterpolation from "../components/FilterInterpolation/FilterInterpolation";
 
-import { Q, P } from "../utils/matrix";
+import { Q, P } from "../constants/matrix";
 import AproveBtn from "../components/AproveBtn/Aprovebtn";
+import useGetWorkWithTensor from "../hooks/useGetWorkWithTensor";
 
 export default function CreateScreen() {
   const [sliderValue, setSliderValue] = useState<number>(50);
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [imageTensor, setImageTensor] = useState<number[][][]>();
   const [imageFirstTensor, setFirstImageTensor] = useState<number[][][]>();
-  const [tensorRedy, setTensorRedy] = useState<boolean>(false);
   const [matrixT, setMatrixT] = useState();
-  const [base64Img, setBase64Img] = useState();
+  const [base64Img, setBase64Img] = useState<string>();
+  const [loadingPicture, setLoadingPicture] = useState(false);
+
+  const workWithTensor = useGetWorkWithTensor({
+    imageTensor,
+    matrixT,
+    selectedImage,
+    setBase64Img,
+  });
+
   //Функция для выбора изображения
   const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
+    try {
+      setLoadingPicture(true);
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
 
-    console.log(result);
+      console.log(result);
 
-    if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri);
+      if (!result.canceled) {
+        setSelectedImage(result?.assets?.[0].uri);
+      }
+      console.log(result?.assets?.[0].uri);
+      await tf.ready();
+      console.log("starting inference with picked image: " + selectedImage);
+      // Создание тензора изображения
+
+      const response = await fetch(result?.assets?.[0]?.uri || "");
+      const imageDataArrayBuffer = await response.arrayBuffer();
+      const imageData = new Uint8Array(imageDataArrayBuffer);
+
+      // Decode image data to a tensor
+      const tensor = decodeJpeg(imageData) as tf.Tensor3D;
+      const transformedImage = tensor.arraySync();
+
+      tensor.print();
+      console.log(tensor.shape);
+      alert("Изображение загружено");
+      setImageTensor(transformedImage);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoadingPicture(false);
     }
-    console.log(result.assets[0].uri);
-    await tf.ready();
-    console.log("starting inference with picked image: " + selectedImage);
-    // Создание тензора изображения
-
-    const response = await fetch(result.assets[0].uri, {}, { isBinary: true });
-    const imageDataArrayBuffer = await response.arrayBuffer();
-    const imageData = new Uint8Array(imageDataArrayBuffer);
-
-    // Decode image data to a tensor
-    const tensor = decodeJpeg(imageData) as tf.Tensor3D;
-    const transformedImage = tensor.arraySync();
-
-    tensor.print();
-    console.log(tensor.shape);
-    alert("Изображение загружено");
-    setImageTensor(transformedImage);
-    setTensorRedy(true);
   };
 
   // Функция для загрузки изображения и преобразования его в тензор
@@ -87,20 +102,10 @@ export default function CreateScreen() {
             matrixT={matrixT}
             setMatrixT={setMatrixT}
           />
-          <AproveBtn
-            tensor={imageTensor}
-            matrixT={matrixT}
-            selectedImage={selectedImage}
-            setBase64Img={setBase64Img}
-          />
+          <AproveBtn workWithTensor={workWithTensor} />
         </View>
       ) : (
-        <TouchableOpacity
-          style={styles.btn}
-          onPress={() => {
-            pickImage();
-          }}
-        >
+        <TouchableOpacity style={styles.btn} onPress={pickImage}>
           <Icon name="plus" size={30} color="white" />
           <Text style={styles.txt}> Upload photo </Text>
         </TouchableOpacity>

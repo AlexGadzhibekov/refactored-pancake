@@ -4,9 +4,14 @@ import * as tf from "@tensorflow/tfjs";
 import * as jpeg from "jpeg-js";
 import { encode } from "base-64";
 
-import { Q, P } from "../../utils/matrix";
+import { Q, P } from "../../constants/matrix";
 
-const TensorVisualization = ({ tensor, matrixT, selectedImage, base64Img }) => {
+const TensorVisualization = ({
+  tensor,
+  matrixT,
+  selectedImage,
+  base64Img,
+}: any) => {
   return (
     <View style={styles.container}>
       {base64Img ? (
